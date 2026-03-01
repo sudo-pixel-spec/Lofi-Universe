@@ -8,6 +8,7 @@ export default function FilmGrain({ amount = 0.06 }: { amount?: number }) {
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
+
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
 
@@ -19,10 +20,13 @@ export default function FilmGrain({ amount = 0.06 }: { amount?: number }) {
     function resize() {
       w = Math.floor(window.innerWidth);
       h = Math.floor(window.innerHeight);
+
       canvas.width = Math.floor(w * DPR);
       canvas.height = Math.floor(h * DPR);
+
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
+
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     }
 
