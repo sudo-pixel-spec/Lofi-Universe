@@ -14,7 +14,6 @@ export default function FilmGrain({ amount = 0.06 }: { amount?: number }) {
     const ctxEl = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctxEl) return;
 
-    // ✅ ctx2d is guaranteed non-null everywhere below
     const ctx: CanvasRenderingContext2D = ctxEl;
 
     let raf = 0;
@@ -39,7 +38,6 @@ export default function FilmGrain({ amount = 0.06 }: { amount?: number }) {
     const onResize = () => resize();
     window.addEventListener("resize", onResize);
 
-    // render grain at low FPS to save CPU
     let last = performance.now();
     function loop(now: number) {
       if (now - last > 70) {
@@ -48,13 +46,12 @@ export default function FilmGrain({ amount = 0.06 }: { amount?: number }) {
         const img = ctx.createImageData(w, h);
         const d = img.data;
 
-        // sparse noise
         for (let i = 0; i < d.length; i += 16) {
           const v = (Math.random() * 255) | 0;
           d[i + 0] = v;
           d[i + 1] = v;
           d[i + 2] = v;
-          d[i + 3] = 28; // alpha
+          d[i + 3] = 28;
         }
 
         ctx.putImageData(img, 0, 0);
