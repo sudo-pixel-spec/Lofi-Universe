@@ -24,33 +24,38 @@ export default function EnvironmentOverlays({ overlays }: { overlays?: Overlay[]
 
   if (!overlays?.length) return null;
 
-  function animationProps(type?: string) {
-    switch (type) {
-      case "float":
-        return {
-          animate: { y: [0, -6, 0] },
-          transition: { duration: 6, repeat: Infinity, ease: "easeInOut" }
-        };
-      case "pulse":
-        return {
-          animate: { opacity: [0.65, 1, 0.65] },
-          transition: { duration: 4, repeat: Infinity, ease: "easeInOut" }
-        };
-      case "flicker":
-        return {
-          animate: { opacity: [0.7, 1, 0.6, 1] },
-          transition: { duration: 0.45, repeat: Infinity, repeatDelay: 2.8 }
-        };
-      case "sway":
-        return {
-          animate: { rotate: [-1.3, 1.3, -1.3] },
-          transition: { duration: 8, repeat: Infinity, ease: "easeInOut" }
-        };
-      default:
-        return {};
-    }
-  }
+ function animationProps(type?: string) {
+  const easeInOut: number[] = [0.42, 0, 0.58, 1];
 
+  switch (type) {
+    case "float":
+      return {
+        animate: { y: [0, -6, 0] },
+        transition: { duration: 6, repeat: Infinity, ease: easeInOut }
+      };
+
+    case "pulse":
+      return {
+        animate: { opacity: [0.65, 1, 0.65] },
+        transition: { duration: 4, repeat: Infinity, ease: easeInOut }
+      };
+
+    case "flicker":
+      return {
+        animate: { opacity: [0.7, 1, 0.6, 1] },
+        transition: { duration: 0.45, repeat: Infinity, repeatDelay: 2.8 }
+      };
+
+    case "sway":
+      return {
+        animate: { rotate: [-1.3, 1.3, -1.3] },
+        transition: { duration: 8, repeat: Infinity, ease: easeInOut }
+      };
+
+    default:
+      return {};
+  }
+}
   return (
     <>
       {overlays.map((o, i) => {
