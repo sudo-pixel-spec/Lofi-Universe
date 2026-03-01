@@ -6,11 +6,16 @@ export default function FilmGrain({ amount = 0.06 }: { amount?: number }) {
   const ref = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
+    const canvasEl = ref.current;
+    if (!canvasEl) return;
 
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    if (!ctx) return;
+    const canvas: HTMLCanvasElement = canvasEl;
+
+    const ctxEl = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctxEl) return;
+
+    // ✅ ctx2d is guaranteed non-null everywhere below
+    const ctx: CanvasRenderingContext2D = ctxEl;
 
     let raf = 0;
     let w = 0;
@@ -34,6 +39,7 @@ export default function FilmGrain({ amount = 0.06 }: { amount?: number }) {
     const onResize = () => resize();
     window.addEventListener("resize", onResize);
 
+    // render grain at low FPS to save CPU
     let last = performance.now();
     function loop(now: number) {
       if (now - last > 70) {
@@ -42,12 +48,13 @@ export default function FilmGrain({ amount = 0.06 }: { amount?: number }) {
         const img = ctx.createImageData(w, h);
         const d = img.data;
 
+        // sparse noise
         for (let i = 0; i < d.length; i += 16) {
           const v = (Math.random() * 255) | 0;
           d[i + 0] = v;
           d[i + 1] = v;
           d[i + 2] = v;
-          d[i + 3] = 28;
+          d[i + 3] = 28; // alpha
         }
 
         ctx.putImageData(img, 0, 0);
@@ -68,10 +75,7 @@ export default function FilmGrain({ amount = 0.06 }: { amount?: number }) {
     <canvas
       ref={ref}
       className="absolute inset-0 pointer-events-none"
-      style={{
-        opacity: amount,
-        mixBlendMode: "overlay"
-      }}
+      style={{ opacity: amount, mixBlendMode: "overlay" }}
     />
   );
 }
