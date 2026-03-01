@@ -15,10 +15,13 @@ export default function RainCanvas({
   const ref = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const canvasEl = ref.current;
+    if (canvasEl === null) return;
+    const canvas: HTMLCanvasElement = canvasEl;
+
+    const ctxEl = canvas.getContext("2d");
+    if (ctxEl === null) return;
+    const ctx: CanvasRenderingContext2D = ctxEl;
 
     let raf = 0;
     let w = 0;
@@ -27,17 +30,20 @@ export default function RainCanvas({
 
     const drops: Drop[] = [];
 
-    function resize() {
+    const resize = () => {
       w = Math.floor(window.innerWidth);
       h = Math.floor(window.innerHeight);
+
       canvas.width = Math.floor(w * DPR);
       canvas.height = Math.floor(h * DPR);
+
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
-      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    }
 
-    function spawn(count: number) {
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    };
+
+    const spawn = (count: number) => {
       for (let i = 0; i < count; i++) {
         const speed = 900 + Math.random() * 900;
         drops.push({
@@ -50,9 +56,9 @@ export default function RainCanvas({
           a: 0.05 + Math.random() * 0.12
         });
       }
-    }
+    };
 
-    function tick(dt: number) {
+    const tick = (dt: number) => {
       const target = Math.floor(60 + intensity * 520);
       if (drops.length < target) spawn(Math.min(30, target - drops.length));
       if (drops.length > target) drops.splice(0, drops.length - target);
@@ -80,20 +86,21 @@ export default function RainCanvas({
       }
 
       ctx.globalAlpha = 1;
-    }
+    };
 
     resize();
     const onResize = () => resize();
     window.addEventListener("resize", onResize);
 
     let last = performance.now();
-    function loop(now: number) {
+    const loop = (now: number) => {
       const dt = Math.min(0.033, (now - last) / 1000);
       last = now;
 
       tick(dt);
       raf = requestAnimationFrame(loop);
-    }
+    };
+
     raf = requestAnimationFrame(loop);
 
     return () => {
