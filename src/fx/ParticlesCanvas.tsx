@@ -95,5 +95,5 @@ export default function ParticlesCanvas({ intensity = 0.6 }: { intensity?: numbe
     };
   }, [intensity]);
 
-  return <canvas ref={ref} className="absolute inset-0 pointer-events-none" />;
+  return <canvas ref={ref} className="absolute inset-0 pointer-events-none z-20" />;
 }

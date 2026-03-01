@@ -109,5 +109,5 @@ export default function RainCanvas({
     };
   }, [intensity, tint]);
 
-  return <canvas ref={ref} className="absolute inset-0 pointer-events-none" />;
+  return <canvas ref={ref} className="absolute inset-0 pointer-events-none z-30" />;
 }
