@@ -25,19 +25,17 @@ export default function EnvironmentOverlays({ overlays }: { overlays?: Overlay[]
   if (!overlays?.length) return null;
 
  function animationProps(type?: string) {
-  const easeInOut: number[] = [0.42, 0, 0.58, 1];
-
   switch (type) {
     case "float":
       return {
         animate: { y: [0, -6, 0] },
-        transition: { duration: 6, repeat: Infinity, ease: easeInOut }
+        transition: { duration: 6, repeat: Infinity }
       };
 
     case "pulse":
       return {
         animate: { opacity: [0.65, 1, 0.65] },
-        transition: { duration: 4, repeat: Infinity, ease: easeInOut }
+        transition: { duration: 4, repeat: Infinity }
       };
 
     case "flicker":
@@ -49,7 +47,7 @@ export default function EnvironmentOverlays({ overlays }: { overlays?: Overlay[]
     case "sway":
       return {
         animate: { rotate: [-1.3, 1.3, -1.3] },
-        transition: { duration: 8, repeat: Infinity, ease: easeInOut }
+        transition: { duration: 8, repeat: Infinity }
       };
 
     default:
