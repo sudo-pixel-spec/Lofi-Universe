@@ -1,163 +1,112 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { ENVIRONMENTS, EnvironmentId } from "@/data/environments";
-import { clamp } from "@/lib/clamp";
-import { readJSON, writeJSON } from "@/lib/storage";
-import SceneStage from "./SceneStage";
-import SoftGlowUI from "./SoftGlowUI";
-import AudioPlayer from "./AudioPlayer";
-import QuoteFloat from "./QuoteFloat";
-import StartOverlay from "./StartOverlay";
-import { usePulse } from "@/lib/usePulse";
-import LightningOverlay from "./LightningOverlay";
+import { useEffect, useRef } from "react";
 
-type Settings = {
-  envId: EnvironmentId;
-  night: boolean;
-  rain: number;
-  musicOn: boolean;
-  musicVol: number;
-  ambientOn: boolean;
-  ambientVol: number;
-  quotesOn: boolean;
-  focus: boolean;
-};
+type Puff = { x: number; y: number; r: number; vx: number; vy: number; a: number };
 
-const KEY = "lofi_universe_settings_v1";
-
-const DEFAULTS: Settings = {
-  envId: "tokyo",
-  night: true,
-  rain: 0.75,
-  musicOn: true,
-  musicVol: 0.6,
-  ambientOn: true,
-  ambientVol: 0.7,
-  quotesOn: true,
-  focus: false
-};
-
-export default function UniverseShell() {
-  const [settings, setSettings] = useState<Settings>(DEFAULTS);
-  const [started, setStarted] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
+export default function FogCanvas({
+  intensity = 0.5,
+  cool = true
+}: {
+  intensity?: number;
+  cool?: boolean;
+}) {
+  const ref = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    const saved = readJSON<Settings>(KEY, DEFAULTS);
-    setSettings(saved);
-    setHydrated(true);
-  }, []);
+    const canvasEl = ref.current;
+    if (!canvasEl) return;
+    const canvas: HTMLCanvasElement = canvasEl;
 
-  const env = useMemo(
-    () => ENVIRONMENTS.find((e) => e.id === settings.envId) ?? ENVIRONMENTS[0],
-    [settings.envId]
-  );
+    const ctxEl = canvas.getContext("2d");
+    if (!ctxEl) return;
+    const ctx: CanvasRenderingContext2D = ctxEl;
 
-  const pulse = usePulse({
-    enabled: started && settings.musicOn,
-    speed: 0.9,
-    amount: 1.0
-  });
+    let raf = 0;
+    let w = 0;
+    let h = 0;
+    const DPR = Math.min(2, window.devicePixelRatio || 1);
 
-  useEffect(() => {
-    if (!hydrated) return;
-    setSettings((s) => ({
-      ...s,
-      night: env.defaultNight,
-      rain: env.defaultRain
-    }));
-  }, [env.id, hydrated]);
+    const puffs: Puff[] = [];
 
-  useEffect(() => {
-    if (!hydrated) return;
-    writeJSON(KEY, settings);
-  }, [settings, hydrated]);
+    function resize() {
+      w = Math.floor(window.innerWidth);
+      h = Math.floor(window.innerHeight);
 
-  function patch(p: Partial<Settings>) {
-    setSettings((s) => ({ ...s, ...p }));
-  }
+      canvas.width = Math.floor(w * DPR);
+      canvas.height = Math.floor(h * DPR);
 
-  useEffect(() => {
-    if (!hydrated) return;
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
 
-    function onKey(e: KeyboardEvent) {
-      if (e.key === " " || e.code === "Space") {
-        e.preventDefault();
-        patch({ musicOn: !settings.musicOn });
-        setStarted(true);
-      }
-      if (e.key.toLowerCase() === "n") patch({ night: !settings.night });
-      if (e.key.toLowerCase() === "q") patch({ quotesOn: !settings.quotesOn });
-      if (e.key.toLowerCase() === "f") patch({ focus: !settings.focus });
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     }
 
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [hydrated, settings.musicOn, settings.night, settings.quotesOn, settings.focus]);
+    function seed() {
+      puffs.length = 0;
+      const count = Math.floor(6 + intensity * 14);
+      for (let i = 0; i < count; i++) {
+        puffs.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          r: 180 + Math.random() * 320,
+          vx: (-6 + Math.random() * 12) * 0.15,
+          vy: (-6 + Math.random() * 12) * 0.12,
+          a: 0.012 + Math.random() * 0.02
+        });
+      }
+    }
 
-  const rainUrl = env.rainSfxUrl ?? "/audio/rain-loop.mp3";
+    resize();
+    seed();
 
-  return (
-    <div className="fixed inset-0 overflow-hidden bg-black text-white">
-      <SceneStage env={env} night={settings.night} rain={settings.rain} />
-      <LightningOverlay envId={settings.envId} night={settings.night} rain={settings.rain} />
+    const onResize = () => {
+      resize();
+      seed();
+    };
+    window.addEventListener("resize", onResize);
 
-      {started && (
-        <AudioPlayer
-          fadeMs={1200}
-          lofiUrl={env.lofiStreamUrl}
-          ambientUrl={settings.night ? env.ambientNight : env.ambientDay}
-          rainUrl={rainUrl}
-          rainIntensity={settings.rain}
-          rainMaxVol={0.9}
-          musicOn={settings.musicOn}
-          ambientOn={settings.ambientOn}
-          musicVol={Math.pow(settings.musicVol, 10) * 0.55}
-          ambientVol={settings.ambientVol}
-        />
-      )}
+    let last = performance.now();
 
-      {settings.quotesOn && <QuoteFloat />}
+    function loop(now: number) {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
 
-      {!settings.focus && (
-        <SoftGlowUI
-          pulse={pulse}
-          envId={settings.envId}
-          night={settings.night}
-          rain={settings.rain}
-          musicOn={settings.musicOn}
-          ambientOn={settings.ambientOn}
-          musicVol={settings.musicVol}
-          ambientVol={settings.ambientVol}
-          quotesOn={settings.quotesOn}
-          onChangeEnv={(envId) => {
-            patch({ envId });
-            setStarted(true);
-          }}
-          onToggleNight={() => patch({ night: !settings.night })}
-          onRain={(v) => patch({ rain: clamp(v, 0, 1) })}
-          onToggleMusic={() => {
-            patch({ musicOn: !settings.musicOn });
-            setStarted(true);
-          }}
-          onToggleAmbient={() => {
-            patch({ ambientOn: !settings.ambientOn });
-            setStarted(true);
-          }}
-          onMusicVol={(v) => patch({ musicVol: clamp(v, 0, 1) })}
-          onAmbientVol={(v) => patch({ ambientVol: clamp(v, 0, 1) })}
-          onToggleQuotes={() => patch({ quotesOn: !settings.quotesOn })}
-        />
-      )}
+      ctx.clearRect(0, 0, w, h);
 
-      {!started && <StartOverlay onStart={() => setStarted(true)} />}
+      const base = cool ? "180,210,255" : "255,230,190";
 
-      {settings.focus && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/60 backdrop-blur">
-          Focus mode • press <span className="text-white/80">F</span> to show UI
-        </div>
-      )}
-    </div>
-  );
+      for (const p of puffs) {
+        p.x += p.vx * dt * 60;
+        p.y += p.vy * dt * 60;
+
+        if (p.x < -p.r) p.x = w + p.r;
+        if (p.x > w + p.r) p.x = -p.r;
+        if (p.y < -p.r) p.y = h + p.r;
+        if (p.y > h + p.r) p.y = -p.r;
+
+        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+        g.addColorStop(0, `rgba(${base}, ${p.a})`);
+        g.addColorStop(1, `rgba(${base}, 0)`);
+
+        ctx.globalCompositeOperation = "screen";
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.globalCompositeOperation = "source-over";
+      raf = requestAnimationFrame(loop);
+    }
+
+    raf = requestAnimationFrame(loop);
+
+    return () => {
+      window.removeEventListener("resize", onResize);
+      cancelAnimationFrame(raf);
+    };
+  }, [intensity, cool]);
+
+  return <canvas ref={ref} className="absolute inset-0 pointer-events-none" />;
 }

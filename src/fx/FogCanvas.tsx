@@ -14,10 +14,13 @@ export default function FogCanvas({
   const ref = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const canvasEl = ref.current;
+    if (canvasEl === null) return;
+    const canvas: HTMLCanvasElement = canvasEl;
+
+    const ctxEl = canvas.getContext("2d");
+    if (ctxEl === null) return;
+    const ctx: CanvasRenderingContext2D = ctxEl;
 
     let raf = 0;
     let w = 0;
@@ -26,17 +29,20 @@ export default function FogCanvas({
 
     const puffs: Puff[] = [];
 
-    function resize() {
+    const resize = () => {
       w = Math.floor(window.innerWidth);
       h = Math.floor(window.innerHeight);
+
       canvas.width = Math.floor(w * DPR);
       canvas.height = Math.floor(h * DPR);
+
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
-      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    }
 
-    function seed() {
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    };
+
+    const seed = () => {
       puffs.length = 0;
       const count = Math.floor(6 + intensity * 14);
       for (let i = 0; i < count; i++) {
@@ -49,7 +55,7 @@ export default function FogCanvas({
           a: 0.012 + Math.random() * 0.02
         });
       }
-    }
+    };
 
     resize();
     seed();
@@ -62,7 +68,7 @@ export default function FogCanvas({
 
     let last = performance.now();
 
-    function loop(now: number) {
+    const loop = (now: number) => {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
 
@@ -91,9 +97,8 @@ export default function FogCanvas({
       }
 
       ctx.globalCompositeOperation = "source-over";
-
       raf = requestAnimationFrame(loop);
-    }
+    };
 
     raf = requestAnimationFrame(loop);
 
