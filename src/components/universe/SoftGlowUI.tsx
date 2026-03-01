@@ -62,6 +62,7 @@ export default function SoftGlowUI(props: {
   musicVol: number;
   ambientVol: number;
   quotesOn: boolean;
+  pulse?: number;
 
   onChangeEnv: (id: EnvironmentId) => void;
   onToggleNight: () => void;
@@ -76,11 +77,13 @@ export default function SoftGlowUI(props: {
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="absolute left-4 top-4 w-[320px] rounded-2xl border border-white/10 bg-black/30 backdrop-blur-xl p-4
-                 shadow-[0_0_60px_rgba(120,160,255,0.12)]"
-    >
+  initial={{ opacity: 0, y: 12 }}
+  animate={{ opacity: 1, y: 0 }}
+  className="absolute left-4 top-4 w-[320px] rounded-2xl border border-white/10 bg-black/30 backdrop-blur-xl p-4"
+  style={{
+    boxShadow: `0 0 ${60 + (props.pulse ?? 0) * 70}px rgba(120,160,255,${0.12 + (props.pulse ?? 0) * 0.12})`
+  }}
+>
       <div className="mb-3">
         <div className="text-sm text-white/70">Lofi Universe</div>
         <div className="text-lg font-semibold text-white/90">Interactive Chill Space</div>

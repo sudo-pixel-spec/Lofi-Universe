@@ -9,6 +9,8 @@ import SoftGlowUI from "./SoftGlowUI";
 import AudioPlayer from "./AudioPlayer";
 import QuoteFloat from "./QuoteFloat";
 import StartOverlay from "./StartOverlay";
+import { usePulse } from "@/lib/usePulse";
+import LightningOverlay from "./LightningOverlay";
 
 type Settings = {
   envId: EnvironmentId;
@@ -52,6 +54,12 @@ export default function UniverseShell() {
     [settings.envId]
   );
 
+  const pulse = usePulse({
+    enabled: started && settings.musicOn,
+    speed: 0.9,
+    amount: 1.0
+  });
+
   useEffect(() => {
     if (!hydrated) return;
     setSettings((s) => ({
@@ -88,17 +96,24 @@ export default function UniverseShell() {
     return () => window.removeEventListener("keydown", onKey);
   }, [hydrated, settings.musicOn, settings.night, settings.quotesOn, settings.focus]);
 
+  const rainUrl = env.rainSfxUrl ?? "/audio/rain-loop.mp3";
+
   return (
     <div className="fixed inset-0 overflow-hidden bg-black text-white">
       <SceneStage env={env} night={settings.night} rain={settings.rain} />
+      <LightningOverlay envId={settings.envId} night={settings.night} rain={settings.rain} />
 
       {started && (
         <AudioPlayer
+          fadeMs={1200}
           lofiUrl={env.lofiStreamUrl}
           ambientUrl={settings.night ? env.ambientNight : env.ambientDay}
+          rainUrl={rainUrl}
+          rainIntensity={settings.rain}
+          rainMaxVol={0.9}
           musicOn={settings.musicOn}
           ambientOn={settings.ambientOn}
-          musicVol={settings.musicVol}
+          musicVol={Math.pow(settings.musicVol, 10) * 0.55}
           ambientVol={settings.ambientVol}
         />
       )}
@@ -107,6 +122,7 @@ export default function UniverseShell() {
 
       {!settings.focus && (
         <SoftGlowUI
+          pulse={pulse}
           envId={settings.envId}
           night={settings.night}
           rain={settings.rain}

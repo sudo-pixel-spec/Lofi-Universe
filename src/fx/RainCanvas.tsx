@@ -5,7 +5,13 @@ import { clamp } from "@/lib/clamp";
 
 type Drop = { x: number; y: number; vx: number; vy: number; len: number; w: number; a: number };
 
-export default function RainCanvas({ intensity }: { intensity: number }) {
+export default function RainCanvas({
+  intensity,
+  tint = "rgba(255,255,255,1)"
+}: {
+  intensity: number;
+  tint?: string;
+}) {
   const ref = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -69,7 +75,7 @@ export default function RainCanvas({ intensity }: { intensity: number }) {
         ctx.beginPath();
         ctx.moveTo(d.x, d.y);
         ctx.lineTo(d.x + d.vx * 0.03, d.y - d.len);
-        ctx.strokeStyle = "white";
+        ctx.strokeStyle = tint;
         ctx.stroke();
       }
 
@@ -94,7 +100,7 @@ export default function RainCanvas({ intensity }: { intensity: number }) {
       window.removeEventListener("resize", onResize);
       cancelAnimationFrame(raf);
     };
-  }, [intensity]);
+  }, [intensity, tint]);
 
   return <canvas ref={ref} className="absolute inset-0 pointer-events-none" />;
 }

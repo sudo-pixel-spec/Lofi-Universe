@@ -3,14 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const QUOTES = [
-  "Breathe. You’re exactly where you need to be.",
-  "Slow progress is still progress.",
-  "Small steps, big universe.",
-  "Keep it simple. Keep it soft.",
-  "Less rush, more flow.",
-  "One task. One beat. One calm.",
-  "You don’t have to do it all today."
+export const QUOTES = [
+  "The night is not empty, it’s just quieter.",
+  "Small progress is still progress.",
+  "Focus softly. Not forcefully.",
+  "Rest is part of the work.",
+  "You are allowed to take your time.",
+  "Even slow stars reach the sky.",
+  "Rain turns noise into rhythm.",
+  "Warm light, calm mind.",
+  "Build slowly. Build honestly.",
+  "Breathe in. Begin again."
 ];
 
 type Q = { id: string; text: string; x: number; y: number; r: number };
